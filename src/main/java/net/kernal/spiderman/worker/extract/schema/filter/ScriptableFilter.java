@@ -32,6 +32,7 @@ public class ScriptableFilter implements Field.ValueFilter {
 			throw new Spiderman.Exception("缺少脚本引擎,请给我设置一个吧 setScriptEngine");
 		}
 		
+		Object r = null;
 		final String value = ctx.getString("value");
 		try {
 			Bindings bind = new SimpleBindings();
@@ -41,12 +42,12 @@ public class ScriptableFilter implements Field.ValueFilter {
 			bind.put("$ctx", ctx);
 			bind.put("$this", value);
 			
-			return (String)scriptEngine.eval(this.script, bind);
+			r = scriptEngine.eval(this.script, bind);
+			return String.valueOf(r);
 		} catch (ScriptException e) {
 			e.printStackTrace();
+			throw new RuntimeException("script[ "+this.script+" ] eval failed!{ $this: "+value+", r: "+r+" }", e);
 		}
-		
-		return value;
 	}
 
 }

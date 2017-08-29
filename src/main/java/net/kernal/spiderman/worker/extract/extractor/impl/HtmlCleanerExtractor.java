@@ -1,44 +1,88 @@
 package net.kernal.spiderman.worker.extract.extractor.impl;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.htmlcleaner.CleanerProperties;
+import org.htmlcleaner.HtmlCleaner;
+import org.htmlcleaner.SimpleXmlSerializer;
+import org.htmlcleaner.TagNode;
+
 import net.kernal.spiderman.kit.K;
 import net.kernal.spiderman.worker.extract.ExtractTask;
 import net.kernal.spiderman.worker.extract.extractor.AbstractXPathExtractor;
 import net.kernal.spiderman.worker.extract.extractor.Extractor;
 import net.kernal.spiderman.worker.extract.schema.Field;
 import net.kernal.spiderman.worker.extract.schema.Model;
-import org.htmlcleaner.CleanerProperties;
-import org.htmlcleaner.HtmlCleaner;
-import org.htmlcleaner.SimpleXmlSerializer;
-import org.htmlcleaner.TagNode;
-
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.*;
 
 public class HtmlCleanerExtractor extends AbstractXPathExtractor {
 
-    public static Extractor.Builder builder() {
-        return (t, p, ms) -> new HtmlCleanerExtractor(t, p, ms);
+	public static Extractor.Builder builder() {
+        return builder(null);
+    }
+	
+    public static Extractor.Builder builder(final Map<String, Object> props) {
+        return (t, p, ms) -> new HtmlCleanerExtractor(t, p, props, ms);
     }
 
     private HtmlCleaner htmlCleaner;
     private TagNode doc;
-
-    public HtmlCleanerExtractor(String html, Model... models) {
-        super(null, null, models);
-        // 使用HtmlCleaner组件
-        htmlCleaner = new HtmlCleaner();
-        htmlCleaner.getProperties().setTreatDeprecatedTagsAsContent(true);
+    
+    private  void init(String html, Map<String, Object> props) {
+    	// 将外部传入的map信息，反射注入到HTMLCleaner的配置对象中去
+    	CleanerProperties properties = new CleanerProperties();
+    	if (props != null) {
+	    	for (String name : props.keySet()) {
+	    		Object value = props.get(name);
+	    		String prefix = name.substring(0, 1).toUpperCase();
+	    		String suffix = name.substring(1, name.length());
+	    		String setterName = "set" + prefix + suffix;
+	    		try {
+	    			Method setterMethod = null;
+					Method[] methods = properties.getClass().getMethods();
+					for (Method m : methods) {
+						if (m.getName().equals(setterName)) {
+							setterMethod = m;
+							break;
+						}
+					}
+					if (setterMethod != null) {
+						setterMethod.invoke(properties, value);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+	    	}
+    	}
+    	// 实例化HtmlCleaner组件
+        htmlCleaner = new HtmlCleaner(properties);
+        // FIXME 将配置选项放到外部
         this.doc = htmlCleaner.clean(html);
     }
 
+    public HtmlCleanerExtractor(String html, Model... models) {
+    	this(html, null, models);
+    }
+    
+    public HtmlCleanerExtractor(String html, Map<String, Object> props, Model... models) {
+        super(null, null, models);
+        this.init(html, props);
+    }
+
     public HtmlCleanerExtractor(ExtractTask task, String page, Model... models) {
+    	this(task, page, null, models);
+    }
+    
+    public HtmlCleanerExtractor(ExtractTask task, String page, Map<String, Object> props, Model... models) {
         super(task, page, models);
         final String html = task.getResponse().getBodyStr();
-        // 使用HtmlCleaner组件
-        htmlCleaner = new HtmlCleaner();
-        htmlCleaner.getProperties().setTreatDeprecatedTagsAsContent(true);
-        this.doc = htmlCleaner.clean(html);
+        this.init(html, props);
     }
 
     protected Object getDoc() {

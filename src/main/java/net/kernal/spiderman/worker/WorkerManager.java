@@ -47,6 +47,10 @@ public abstract class WorkerManager implements Runnable {
         this.listeners.add(listener);
         return this;
     }
+    
+    public Logger getLogger() {
+    	return logger;
+    }
 
     /**
      * 构造器

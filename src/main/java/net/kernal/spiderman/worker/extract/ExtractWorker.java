@@ -130,8 +130,12 @@ public class ExtractWorker extends Worker {
                                     .forEach(v -> {
                                         AtomicReference<String> v2 = new AtomicReference<String>(v);
                                         filters.forEach(ft -> {
-                                            String nv = ft.filter(new ValueFilter.Context(extractor, modelsCtx, v));
-                                            v2.set(nv);// 将上一个结果作为下一个参数过滤
+                                        	try {
+                                        		String nv = ft.filter(new ValueFilter.Context(extractor, modelsCtx, v2.get()));
+                                        		v2.set(nv);// 将上一个结果作为下一个参数过滤
+                                        	} catch (Throwable e) {
+                                        		manager.getLogger().error("value["+v2.get()+"] execute filter["+ft.getClass()+"] failed!", e);
+                                        	}
                                         });
                                         final String nv = v2.get();
                                         if (K.isNotBlank(nv)) {
