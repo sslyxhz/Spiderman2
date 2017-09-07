@@ -107,13 +107,24 @@ public class HtmlCleanerExtractor extends AbstractXPathExtractor {
         return Arrays.asList(nodeArray);
     }
 
-    protected List<Object> extractField(Object model, Field field, String aXpath, String attr, boolean isSerialize) {
+    protected List<Object> extractField(Object model, Field field, String defaultValue, String aXpath, 
+    		String attr, boolean isFromDoc, boolean isSerialize) {
         final List<Object> values = new ArrayList<>();
+        
+        if (null != defaultValue) {
+			values.add(defaultValue);
+			return values;
+		}
+        
         TagNode mNode = (TagNode) model;
         Object[] nodeArray = null;
         String xpath = aXpath.replace("/text()", "");
         try {
-        	nodeArray = mNode.evaluateXPath(xpath);
+        	if (isFromDoc) {
+        		nodeArray = doc.evaluateXPath(xpath);
+			}else {
+				nodeArray = mNode.evaluateXPath(xpath);
+			}
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -147,7 +158,6 @@ public class HtmlCleanerExtractor extends AbstractXPathExtractor {
             }
             values.add(value);
         }
-
         return values;
     }
 

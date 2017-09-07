@@ -10,6 +10,7 @@ import net.kernal.spiderman.kit.Properties;
 import net.kernal.spiderman.worker.extract.ExtractTask;
 import net.kernal.spiderman.worker.extract.extractor.Extractor.Callback.FieldEntry;
 import net.kernal.spiderman.worker.extract.extractor.Extractor.Callback.ModelEntry;
+import net.kernal.spiderman.worker.extract.extractor.impl.HtmlCleanerExtractor;
 import net.kernal.spiderman.worker.extract.schema.Field;
 import net.kernal.spiderman.worker.extract.schema.Model;
 
@@ -28,7 +29,8 @@ public abstract class AbstractXPathExtractor extends Extractor {
 
     protected abstract List<Object> extractModel(Object doc, String modelXpath);
 
-    protected abstract List<Object> extractField(Object model, Field field, String xpath, String attr, boolean isSerialize);
+    protected abstract List<Object> extractField(Object model, Field field, String defaultValue, 
+    		String xpath, String attr, boolean isFromDoc, boolean isSerialize);
 
     protected abstract Map<String, String> extractAttributes(Object node);
 
@@ -71,15 +73,20 @@ public abstract class AbstractXPathExtractor extends Extractor {
             }
         }
         model.getFields().forEach(field -> {
+        	final String defaultValue = field.getString("value", null);
             final String xpath = field.getString("xpath", ".");
             final String attr = field.getString("attribute", field.getString("attr"));
             final boolean isSerialize = field.getBoolean("isSerialize", false);
+            final boolean isFromDoc = field.getBoolean("isFromDoc", false);
             final boolean isAutoExtractAttrs = field.getBoolean("isAutoExtractAttrs", false);
+           
             // 抽取字段
-            List<Object> values = this.extractField(mNode, field, xpath, attr, isSerialize);
+            List<Object> values = this.extractField(mNode, field, defaultValue, xpath, attr, isFromDoc, isSerialize);
+            
             if (K.isEmpty(values)) {
                 return;
             }
+            
             // 若字段包含子字段，则进入递归抽取
             if (isAutoExtractAttrs || K.isNotEmpty(field.getFields())) {
                 List<Object> subValues = new ArrayList<>();
@@ -89,11 +96,13 @@ public abstract class AbstractXPathExtractor extends Extractor {
                 });
                 values = subValues;
             }
-
+            
             final boolean isArray = field.getBoolean("isArray", false);
             final FieldEntry entry = new FieldEntry(field, values);
             entry.setData(isArray ? values : values.get(0));
-            callback.onFieldExtracted(entry);
+            if (K.isEmpty(field.getFields()) || !(this instanceof HtmlCleanerExtractor)) {
+            	callback.onFieldExtracted(entry); //进行字段过滤和新URL入队列
+            }
             fields.put(field.getName(), entry.getData());
         });
         return fields;
