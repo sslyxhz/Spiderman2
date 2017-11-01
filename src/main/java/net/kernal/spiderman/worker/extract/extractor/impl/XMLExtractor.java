@@ -1,13 +1,12 @@
 package net.kernal.spiderman.worker.extract.extractor.impl;
 
-import net.kernal.spiderman.Spiderman;
-import net.kernal.spiderman.kit.K;
-import net.kernal.spiderman.worker.extract.ExtractTask;
-import net.kernal.spiderman.worker.extract.extractor.AbstractXPathExtractor;
-import net.kernal.spiderman.worker.extract.extractor.Extractor;
-import net.kernal.spiderman.worker.extract.schema.Field;
-import net.kernal.spiderman.worker.extract.schema.Model;
-import org.w3c.dom.*;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -18,13 +17,20 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import net.kernal.spiderman.Spiderman;
+import net.kernal.spiderman.kit.K;
+import net.kernal.spiderman.worker.extract.ExtractTask;
+import net.kernal.spiderman.worker.extract.extractor.AbstractXPathExtractor;
+import net.kernal.spiderman.worker.extract.extractor.Extractor;
+import net.kernal.spiderman.worker.extract.schema.Field;
+import net.kernal.spiderman.worker.extract.schema.Model;
 
 public class XMLExtractor extends AbstractXPathExtractor {
 
@@ -98,18 +104,30 @@ public class XMLExtractor extends AbstractXPathExtractor {
     /**
      * @param model
      * @param field
+     * @param defaultValue
      * @param aXpath
      * @param attr
+     * @param isFromDoc
      * @param isSerialize
      * @return 匹配的字段
      */
     @Override
-    protected List<Object> extractField(Object model, Field field, String aXpath, String attr, boolean isSerialize) {
+    protected List<Object> extractField(Object model, Field field, String defaultValue, String aXpath, 
+    		String attr, boolean isFromDoc, boolean isSerialize) {
         final List<Object> values = new ArrayList<>();
+        if (null != defaultValue) {
+			values.add(defaultValue);
+			return values;
+		}
+        
         NodeList nodeList = null;
         String xpath = aXpath.replace("/text()", "");
         try {
-            nodeList = (NodeList) this.xpath.compile(xpath).evaluate(model, XPathConstants.NODESET);
+        	if (isFromDoc) {
+        		nodeList = (NodeList) this.xpath.compile(xpath).evaluate(doc, XPathConstants.NODESET);
+			}else {
+				nodeList = (NodeList) this.xpath.compile(xpath).evaluate(model, XPathConstants.NODESET);
+			}
         } catch (Throwable e) {
             e.printStackTrace();
         }

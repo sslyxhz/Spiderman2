@@ -1,5 +1,10 @@
 package net.kernal.spiderman.kit;
 
+import java.lang.reflect.Constructor;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
 import net.kernal.spiderman.Config;
 import net.kernal.spiderman.Config.Pages;
 import net.kernal.spiderman.Config.Seeds;
@@ -12,12 +17,11 @@ import net.kernal.spiderman.worker.extract.schema.Field;
 import net.kernal.spiderman.worker.extract.schema.Model;
 import net.kernal.spiderman.worker.extract.schema.Page;
 import net.kernal.spiderman.worker.extract.schema.filter.ScriptableFilter;
-import net.kernal.spiderman.worker.extract.schema.rule.*;
-
-import java.lang.reflect.Constructor;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import net.kernal.spiderman.worker.extract.schema.rule.ContainsRule;
+import net.kernal.spiderman.worker.extract.schema.rule.EndsWithRule;
+import net.kernal.spiderman.worker.extract.schema.rule.EqualsRule;
+import net.kernal.spiderman.worker.extract.schema.rule.RegexRule;
+import net.kernal.spiderman.worker.extract.schema.rule.StartsWithRule;
 
 /**
  * 建议深入看看哦～
@@ -78,15 +82,29 @@ public class XMLConfBuilder extends DefaultConfBuilder {
                 .set("isArray", true);
         // fields
         Field field = model.addField("field")
-                .set("xpath", ".//field")
+                .set("xpath", "./field")
                 .set("isAutoExtractAttrs", true)
                 .set("isArray", true);
         // filters
         Field filter = field.addField("filters")
-                .set("xpath", ".//filter[@type]")
+                .set("xpath", "./filter[@type]")
                 .set("isAutoExtractAttrs", true)
                 .set("isArray", true);
         filter.addField("text").set("xpath", "./text()");
+        
+        // childFields
+        Field childField = field.addField("field")
+                .set("xpath", "./field")
+                .set("isAutoExtractAttrs", true)
+                .set("isArray", true);
+        
+        // childFilters
+        Field childFilter = childField.addField("filters")
+                .set("xpath", "./filter[@type]")
+                .set("isAutoExtractAttrs", true)
+                .set("isArray", true);
+        childFilter.addField("text").set("xpath", "./text()");
+        
 
         // 抽取器
         extractor.addModel(property);
@@ -235,32 +253,7 @@ public class XMLConfBuilder extends DefaultConfBuilder {
                                 final Model model = page.getModels().addModel(modelName);
                                 model.putAll(mdl);
                                 final List<Properties> _fields = mdl.getListProperties("field");
-                                if (K.isNotEmpty(_fields)) {
-                                    _fields.forEach(f -> {
-                                        final String fieldName = f.getString("name");
-                                        final Field field = model.addField(fieldName);
-                                        field.putAll(f);
-                                        // 处理Filters
-                                        String ftName = f.getString("filter");
-                                        if (K.isNotBlank(ftName)) {
-                                            Field.ValueFilter rft = conf.getFilters().all().get(ftName);
-                                            if (rft == null) {
-                                                throw new Spiderman.Exception("页面[name=" + pageName + "].模型[name=" + modelName + "].Field[name=" + fieldName + "]配置的属性[filter=" + ftName + "]不存在");
-                                            }
-                                            field.addFilter(rft);
-                                        }
-                                        final List<Properties> filters = f.getListProperties("filters");
-                                        if (K.isNotEmpty(filters)) {
-                                            filters.forEach(ft -> {
-                                                switch (ft.getString("type")) {
-                                                    case "script":
-                                                        field.addFilter(new ScriptableFilter(ft.getString("value", ft.getString("text"))));
-                                                        break;
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
+                                extractField(model, pageName, modelName, _fields);
                             });
                         }
                         // add page
@@ -269,6 +262,68 @@ public class XMLConfBuilder extends DefaultConfBuilder {
                 }
             }
 
+            private void extractField(Model model, String pageName, String modelName ,List<Properties> fields ) {
+            	if (K.isNotEmpty(fields)) {
+            		fields.forEach(f -> {
+                        final String fieldName = f.getString("name");
+                        final Field field = model.addField(fieldName);
+                        field.putAll(f);
+                        // 处理Filters
+                        String ftName = f.getString("filter");
+                        if (K.isNotBlank(ftName)) {
+                            Field.ValueFilter rft = conf.getFilters().all().get(ftName);
+                            if (rft == null) {
+                                throw new Spiderman.Exception("页面[name=" + pageName + "].模型[name=" + modelName + "].Field[name=" + fieldName + "]配置的属性[filter=" + ftName + "]不存在");
+                            }
+                            field.addFilter(rft);
+                        }
+                        final List<Properties> filters = f.getListProperties("filters");
+                        if (K.isNotEmpty(filters)) {
+                            filters.forEach(ft -> {
+                                switch (ft.getString("type")) {
+                                    case "script":
+                                        field.addFilter(new ScriptableFilter(ft.getString("value", ft.getString("text"))));
+                                        break;
+                                }
+                            });
+                        }
+                        final List<Properties> newFields = f.getListProperties("field");
+                        if (K.isNotEmpty(newFields)) {
+                        	extractField(field, pageName, modelName, newFields);
+                        }
+                    });
+                }
+            }
+            
+            private void extractField(Field parentField, String pageName, String modelName ,List<Properties> fields ) {
+            	if (K.isNotEmpty(fields)) {
+            		fields.forEach(f -> {
+                        final String fieldName = f.getString("name");
+                        final Field field = parentField.addField(fieldName);
+                        field.putAll(f);
+                        // 处理Filters
+                        String ftName = f.getString("filter");
+                        if (K.isNotBlank(ftName)) {
+                            Field.ValueFilter rft = conf.getFilters().all().get(ftName);
+                            if (rft == null) {
+                                throw new Spiderman.Exception("页面[name=" + pageName + "].模型[name=" + modelName + "].Field[name=" + fieldName + "]配置的属性[filter=" + ftName + "]不存在");
+                            }
+                            field.addFilter(rft);
+                        }
+                        final List<Properties> filters = f.getListProperties("filters");
+                        if (K.isNotEmpty(filters)) {
+                            filters.forEach(ft -> {
+                                switch (ft.getString("type")) {
+                                    case "script":
+                                        field.addFilter(new ScriptableFilter(ft.getString("value", ft.getString("text"))));
+                                        break;
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+            
             public void onFieldExtracted(FieldEntry entry) {
             }
         });
