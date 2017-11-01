@@ -55,11 +55,17 @@ public class Spiderman {
 		this.managers.forEach(m -> threads.execute(m));
 		// 调度, 固定一段时间清除种子和一些中间过程任务，重新将种子放入任务队列
 		final InitialSeeds initSeeds = new InitialSeeds();
-		final long period = K.convertToMillis(context.getParams().getString("scheduler.period", "0")).longValue();
-		if (period > 0) {
-			this.scheduler.scheduleAtFixedRate(initSeeds, 5000, period, TimeUnit.MILLISECONDS);
+		final String cron = context.getParams().getString("scheduler.cron");
+		if (K.isNotBlank(cron)) {
+			// quartz
+			
 		} else {
-			initSeeds.execute();
+			final long period = K.convertToMillis(context.getParams().getString("scheduler.period", "0")).longValue();
+			if (period > 0) {
+				this.scheduler.scheduleAtFixedRate(initSeeds, 5000, period, TimeUnit.MILLISECONDS);
+			} else {
+				initSeeds.execute();
+			}
 		}
 
 		Thread thread = new Thread(() -> {
@@ -104,7 +110,7 @@ public class Spiderman {
 				context.getTaskManager().removeKeys("seeds");
 				logger.warn("清除Keys成功[group=seeds]");
 				context.getConf().getPages().all().parallelStream()
-					.filter(p -> !p.isPersisted())
+					.filter(p -> !p.isPersisted())//是否持久化，在每一次重新调度采集任务的时候，持久化的内容是不会被清除的，但是非持久化的页面内容都会被删除掉。
 					.map(p -> p.getName())
 					.forEach(group -> {
 						context.getTaskManager().removeKeys(group);

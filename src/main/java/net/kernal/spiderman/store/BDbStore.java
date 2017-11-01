@@ -1,10 +1,17 @@
 package net.kernal.spiderman.store;
 
-import com.sleepycat.je.*;
-
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.sleepycat.je.Database;
+import com.sleepycat.je.DatabaseConfig;
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.Environment;
+import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.LockMode;
+import com.sleepycat.je.OperationStatus;
 
 public class BDbStore implements KVStore {
 
@@ -12,12 +19,19 @@ public class BDbStore implements KVStore {
     private Map<String, Database> dbs;
 
     public BDbStore(File file, String... groups) {
+    	File[] files = file.listFiles(f -> f.isFile());
+        Arrays.asList(files)
+        	.parallelStream()
+        	.forEach(f -> {
+        		f.delete();
+        	});
+        
         dbs = new HashMap<>(groups.length);
         // Open the environment. Create it if it does not already exist.
         EnvironmentConfig envCfg = new EnvironmentConfig();
         envCfg.setAllowCreate(true);
         env = new Environment(file, envCfg);
-
+        
         // Open the database. Create it if it does not already exist.
         DatabaseConfig dbCfg = new DatabaseConfig();
         dbCfg.setAllowCreate(true);
