@@ -53,11 +53,12 @@ public abstract class AbstractXPathExtractor extends Extractor {
             } else {
                 mNodes.add(doc);
             }
-            mNodes.forEach(mNode -> {
+            for (int i = 0; i < mNodes.size(); i++) {
+            	Object mNode = mNodes.get(i);
                 final Properties fields = this.extractModel(mNode, model, callback);
                 // 通知回调
-                callback.onModelExtracted(new ModelEntry(model, fields));
-            });
+                callback.onModelExtracted(new ModelEntry(i, model, fields));
+            }
         });
     }
 

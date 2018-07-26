@@ -20,11 +20,13 @@ public class BDbStore implements KVStore {
 
     public BDbStore(File file, String... groups) {
     	File[] files = file.listFiles(f -> f.isFile());
-        Arrays.asList(files)
-        	.parallelStream()
-        	.forEach(f -> {
-        		f.delete();
-        	});
+    	if (files != null) {
+	        Arrays.asList(files)
+	        	.parallelStream()
+	        	.forEach(f -> {
+	        		f.delete();
+	        	});
+    	}
         
         dbs = new HashMap<>(groups.length);
         // Open the environment. Create it if it does not already exist.

@@ -48,6 +48,14 @@ public class HttpClientDownloader extends Downloader {
 		this(new Properties());
 	}
 	
+	public static void main(String[] args) {
+		Properties props = Properties.from(new String[]{"downloader.proxy","10.254.251.230:52460"});
+		HttpClientDownloader downloader = new HttpClientDownloader(props);
+		Request request = new Request("https://www.baidu.com");
+		Response resp = downloader.download(request);
+		System.out.println(resp.getBodyStr());
+	}
+	
 	public HttpClientDownloader(Properties props) {
 		RequestConfig.Builder builder = RequestConfig.custom()
 	            .setCookieSpec(CookieSpecs.NETSCAPE)

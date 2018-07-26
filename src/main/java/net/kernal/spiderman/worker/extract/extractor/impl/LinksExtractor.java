@@ -39,7 +39,7 @@ public class LinksExtractor extends Extractor {
 			final Properties fields = new Properties();
 			fields.put("links", fieldEntry.getData());
 			fields.put("url", response.getRequest().getUrl());
-			final ModelEntry modelEntry = new ModelEntry(model, fields);
+			final ModelEntry modelEntry = new ModelEntry(0, model, fields);
 			callback.onModelExtracted(modelEntry);
 		}
 	}

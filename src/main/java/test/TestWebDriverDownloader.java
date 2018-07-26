@@ -55,10 +55,13 @@ public class TestWebDriverDownloader {
         driver.navigate().to(writeMailUrl);
         
         // 3. 打开文件选择窗口
-        promise(()->{
-	        WebElement uploadAttachBtn = driver.findElement(By.xpath("//div[@id='div_attach']/div/a[2]"));
-	        uploadAttachBtn.click();
-        });
+        promise(new Runnable() {
+			public void run() {
+				WebElement uploadAttachBtn = driver.findElement(By.xpath("//div[@id='div_attach']/div/a[2]"));
+		        uploadAttachBtn.click();
+			}
+		});
+	        
         
         // 4. 进入iframe
         driver.switchTo().defaultContent();
@@ -67,41 +70,49 @@ public class TestWebDriverDownloader {
         
         // 4. 选择文件
         for (String filePath : filePaths) {
-        	promise(()->{
-    	        List<WebElement> uploadAttachBtn2 = driver.findElements(By.xpath("//div[@class='dhx_file_uploader_button button_browse']"));
-    	        uploadAttachBtn2.get(0).click();
-            });
+        	promise(new Runnable() {
+    			public void run() {
+    				List<WebElement> uploadAttachBtn2 = driver.findElements(By.xpath("//div[@class='dhx_file_uploader_button button_browse']"));
+    				uploadAttachBtn2.get(0).click();
+    			}
+    		});
         	
-	        promise(()->{
-	            StringSelection stringSelection = new StringSelection(filePath);            
-	            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);  
-	        });
+	        promise(new Runnable() {
+				public void run() {
+					StringSelection stringSelection = new StringSelection(filePath);            
+					Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);  
+				}
+			});
 	        
 	        final Robot robot = new Robot();
-	        promise(()->{
-		        robot.keyPress(KeyEvent.VK_CONTROL);  
-		        robot.keyPress(KeyEvent.VK_V);  
-		        robot.keyRelease(KeyEvent.VK_V);  
-		        robot.keyRelease(KeyEvent.VK_CONTROL);
-	        });
+	        promise(new Runnable() {
+				public void run() {
+			        robot.keyPress(KeyEvent.VK_CONTROL);  
+			        robot.keyPress(KeyEvent.VK_V);  
+			        robot.keyRelease(KeyEvent.VK_V);  
+			        robot.keyRelease(KeyEvent.VK_CONTROL);
+				}
+			});
 	        
 	    	robot.keyPress(KeyEvent.VK_ENTER);
 	    	robot.keyRelease(KeyEvent.VK_ENTER);
 	    	
 	    	Thread.sleep(1000);
         }
-    	promise(()->{
-    		// 100%
-    		List<WebElement> progressDiv = driver.findElements(By.xpath("//div[@class='dhx_file_param dhx_file_progress']"));
-    		for (int i = 0; i < progressDiv.size(); i++) {
-    			WebElement pd = progressDiv.get(i);
-    			String progress = pd.getText();
-    			if (!"100%".equals(progress)) {
-    				System.out.println("progress["+i+"] => " + progress);
-    				throw new RuntimeException("not fninish!");
-    			}
-    		}
-    	});
+    	promise(new Runnable() {
+			public void run() {
+	    		// 100%
+	    		List<WebElement> progressDiv = driver.findElements(By.xpath("//div[@class='dhx_file_param dhx_file_progress']"));
+	    		for (int i = 0; i < progressDiv.size(); i++) {
+	    			WebElement pd = progressDiv.get(i);
+	    			String progress = pd.getText();
+	    			if (!"100%".equals(progress)) {
+	    				System.out.println("progress["+i+"] => " + progress);
+	    				throw new RuntimeException("not fninish!");
+	    			}
+	    		}
+	    	}
+		});
     	
     	// last step submit
     	WebElement btnSubmit = driver.findElement(By.id("btnSubmit"));

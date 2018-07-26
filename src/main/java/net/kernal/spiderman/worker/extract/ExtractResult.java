@@ -13,6 +13,10 @@ public class ExtractResult implements Serializable {
 	 */
 	private String pageName;
 	/**
+	 * 模型顺序
+	 */
+	private int modelIdx;
+	/**
 	 * 结果所属模型名称
 	 */
 	private String modelName;
@@ -55,6 +59,13 @@ public class ExtractResult implements Serializable {
 	
 	public Properties getFields() {
 		return this.fields;
+	}
+	
+	public void setModelIdx(int idx) {
+		this.modelIdx = idx;
+	}
+	public int getModelIdx() {
+		return this.modelIdx;
 	}
 	
 	@Override

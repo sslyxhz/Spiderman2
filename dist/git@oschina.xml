@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <spiderman name="开源中国GIT">
     <property key="duration" value="0" /><!-- 运行时间 0 表示永久，可以给 {n}s {n}m {n}h {n}d -->
     <property key="scheduler.period" value="24h" /><!-- 调度间隔时间 -->
@@ -14,8 +14,8 @@
     <property key="username.xpath" value="//input[@id='user_login']" /><!-- 账号输入框 -->
     <property key="password.xpath" value="//input[@id='user_password']" /><!-- 密码输入框 -->
     <property key="submit.xpath" value="//input[@name='commit']" /><!-- 提交按钮 -->
-    <property key="username.value" value="你的账号" />
-    <property key="password.value" value="你的密码" />
+    <property key="username.value" value="{账号}" />
+    <property key="password.value" value="{密码}" />
     
     <property key="worker.download.size" value="1" /><!-- 下载线程数 -->
     <property key="worker.extract.size" value="2" /><!-- 页面抽取线程数 -->

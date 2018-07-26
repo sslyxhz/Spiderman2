@@ -1,14 +1,14 @@
 package net.kernal.spiderman.worker.extract.extractor;
 
-import net.kernal.spiderman.kit.Properties;
-import net.kernal.spiderman.worker.extract.ExtractTask;
-import net.kernal.spiderman.worker.extract.schema.Field;
-import net.kernal.spiderman.worker.extract.schema.Model;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import net.kernal.spiderman.kit.Properties;
+import net.kernal.spiderman.worker.extract.ExtractTask;
+import net.kernal.spiderman.worker.extract.schema.Field;
+import net.kernal.spiderman.worker.extract.schema.Model;
 
 /**
  * 页面提取器
@@ -60,12 +60,18 @@ public abstract class Extractor {
         void onFieldExtracted(FieldEntry entry);
 
         class ModelEntry {
+        	private int idx;
             private Model model;
             private Properties fields;
 
-            public ModelEntry(Model model, Properties fields) {
+            public ModelEntry(int idx, Model model, Properties fields) {
+            	this.idx = idx;
                 this.model = model;
                 this.fields = fields;
+            }
+            
+            public int getIdx() {
+            	return this.idx;
             }
 
             public Model getModel() {

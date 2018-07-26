@@ -2,10 +2,12 @@ package net.kernal.spiderman.worker.extract.schema;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.kernal.spiderman.worker.download.Downloader;
 import net.kernal.spiderman.worker.extract.extractor.Extractor;
+import net.kernal.spiderman.worker.extract.schema.rule.AlwaysTrueRule;
 import net.kernal.spiderman.worker.extract.schema.rule.ContainsRule;
 import net.kernal.spiderman.worker.extract.schema.rule.EndsWithRule;
 import net.kernal.spiderman.worker.extract.schema.rule.EqualsRule;
@@ -62,21 +64,23 @@ public abstract class Page {
 	}
 	
 	public boolean matches(Downloader.Request request) {
+		boolean matched = false;
 		if ("or".equalsIgnoreCase(rules.getPolicy())) {
 			for (UrlMatchRule r : rules.all()) {
 				if (r.matches(request)) {
-					return true;
+					matched = true;
+					break;
 				}
 			}
 		} else {
-			boolean matched = false;
 			for (UrlMatchRule r : rules.all()) {
 				matched = r.matches(request);
 			}
-			return matched;
 		}
 		
-		return false;
+		logger.log(Level.INFO, "Page["+this.getName()+"]");
+		
+		return matched;
 	}
 	
 	public String getName() {
@@ -163,6 +167,9 @@ public abstract class Page {
 		}
 		public void add(UrlMatchRule rule) {
 			this.rules.add(rule);
+		}
+		public void addAlwaysTrue() {
+			this.rules.add(new AlwaysTrueRule());
 		}
 		public List<UrlMatchRule> all() {
 			return this.rules;

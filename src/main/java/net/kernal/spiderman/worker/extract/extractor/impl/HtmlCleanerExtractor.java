@@ -147,8 +147,13 @@ public class HtmlCleanerExtractor extends AbstractXPathExtractor {
                 CleanerProperties prop = htmlCleaner.getProperties();
                 prop.setOmitXmlDeclaration(true);
                 SimpleXmlSerializer ser = new SimpleXmlSerializer(prop);
+                String charset = null;
+                ExtractTask task = getTask();
+                if (task != null && task.getResponse() != null) {
+                	charset = task.getResponse().getCharset();
+                }
                 try {
-                    ser.write(tagNode, sw, getTask().getResponse().getCharset(), true);
+                    ser.write(tagNode, sw, charset, true);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

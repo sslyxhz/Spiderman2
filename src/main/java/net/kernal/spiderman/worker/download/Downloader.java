@@ -168,6 +168,8 @@ public abstract class Downloader {
 		
 		private static final long serialVersionUID = -9068800067277456934L;
 
+		public Response() {}
+		
 		public Response(Request request) {
 			this.request = request;
 		}

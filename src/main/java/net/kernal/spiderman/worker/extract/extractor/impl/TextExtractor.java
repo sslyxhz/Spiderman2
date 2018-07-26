@@ -42,7 +42,7 @@ public class TextExtractor extends Extractor {
 		fields.put("text", K.trim(text));
 		fields.put("html", html);
 		final Model model = new Model(getPage(), "text");
-		callback.onModelExtracted(new ModelEntry(model, fields));
+		callback.onModelExtracted(new ModelEntry(0, model, fields));
 	}
 	
 	/**

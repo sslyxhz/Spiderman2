@@ -110,7 +110,7 @@ public class Spiderman {
 				context.getTaskManager().removeKeys("seeds");
 				logger.warn("清除Keys成功[group=seeds]");
 				context.getConf().getPages().all().parallelStream()
-					.filter(p -> !p.isPersisted())//是否持久化，在每一次重新调度采集任务的时候，持久化的内容是不会被清除的，但是非持久化的页面内容都会被删除掉。
+					.filter(p -> !p.isPersisted())
 					.map(p -> p.getName())
 					.forEach(group -> {
 						context.getTaskManager().removeKeys(group);

@@ -33,6 +33,10 @@ public class ExtractWorker extends Worker {
     private List<Page> pages;
     private DownloadWorker downloadWorker;
 
+    public ExtractWorker(Page... pages) {
+    	this(Arrays.asList(pages), (Downloader)null);
+    }
+    
     public ExtractWorker(List<Page> pages, Downloader downloader) {
         this(pages, null, downloader);
     }
@@ -85,6 +89,7 @@ public class ExtractWorker extends Worker {
                     // 执行抽取
                     extractor.extract(new Extractor.Callback() {
                         public void onModelExtracted(ModelEntry entry) {
+                        	final int modelIdx = entry.getIdx();
                             String modelName = entry.getModel().getName();
                             if (K.isBlank(modelName)) {
                                 modelName = "no-name";
@@ -93,6 +98,7 @@ public class ExtractWorker extends Worker {
                             modelsCtx.put(modelName, fields);
                             final String key = entry.getModel().getString("key");
                             final ExtractResult result = new ExtractResult(pageName, responseBody, modelName, key, fields);
+                            result.setModelIdx(modelIdx);
                             // 处理详细页分页的情况[不是列表页，是详情页，这种分页是把详细内容分成了好几页，所以采集的时候要求要保持顺序才能合并成完整的内容]
                             final Field fieldForNextPageUrl = entry.getModel().getFieldForNextPageUrl();
                             final Field fieldForNextPageContent = entry.getModel().getFieldForNextPageContent();
