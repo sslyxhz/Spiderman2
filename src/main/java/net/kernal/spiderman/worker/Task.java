@@ -28,7 +28,7 @@ public abstract class Task extends Queue.AbstractElement {
 		this.seed = seed;
 		this.source = source;
 		this.request = request;
-		this.links = new HashSet<String>();
+		this.links = new HashSet<>();
 	}
 	
 	public Task getSource() {
@@ -52,7 +52,7 @@ public abstract class Task extends Queue.AbstractElement {
 	}
 	public Collection<String> getSourceLinks() {
 		Task source = this.getSource();
-		final Collection<String> list = new HashSet<String>();
+		final Collection<String> list = new HashSet<>();
 		while (source != null) {
 			list.addAll(source.getLinks());
 			source = source.getSource();
@@ -68,7 +68,7 @@ public abstract class Task extends Queue.AbstractElement {
 	}
 	public List<Task> getSources() {
 		Task source = this.getSource();
-		final List<Task> list = new ArrayList<Task>();
+		final List<Task> list = new ArrayList<>();
 		while (source != null) {
 			list.add(source);
 			source = source.getSource();
