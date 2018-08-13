@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.kernal.spiderman.worker.download.utils.UserAgentUtil;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -76,11 +77,18 @@ public class HttpClientDownloader extends Downloader {
 			builder.setProxy(HttpHost.create(proxy));
 		}
 		this.cookieStore = new BasicCookieStore();
+
+		//添加cookie，绕过安全狗
+		BasicClientCookie safedog = new BasicClientCookie("safedog-flow-item",props.getString("worker.download.safedog-flow-item", ""));
+		safedog.setDomain(props.getString("worker.download.domain", ""));
+		cookieStore.addCookie(safedog);
+
+
 		this.headers = new HashMap<String, String>();
 	    this.defaultRequestConfig = builder.build();
 	    HttpClientBuilder hcb = HttpClients.custom();
 		this.httpClient = hcb
-				.setUserAgent(props.getString("downloader.userAgent", "Spiderman[http://git.oschina.net/l-weiwei/Spiderman2]"))
+				.setUserAgent(props.getString("downloader.userAgent", UserAgentUtil.getUserAgent()))
 				.setDefaultCookieStore(cookieStore)
 				.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false))
 				.setMaxConnTotal(props.getInt("downloader.maxConnTotal", 1000))
