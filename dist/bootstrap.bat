@@ -1,1 +1,1 @@
-java -jar spiderman2.jar -conf %1
+java -jar spiderman2.jar -conf list-page-example.xml
