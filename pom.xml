@@ -39,7 +39,7 @@
 			<groupId>com.sleepycat</groupId>
 			<artifactId>je</artifactId>
 			<version>5.0.73</version>
-			<scope>provided</scope>
+			<!--<scope>provided</scope>-->
 		</dependency>		
 		<dependency>  
             <groupId>org.seleniumhq.selenium</groupId>  
